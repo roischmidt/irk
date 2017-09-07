@@ -5,7 +5,7 @@ import java.util.NoSuchElementException
 
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 
-class EntityManagerSpec extends FunSpec with Matchers with BeforeAndAfterAll{
+class EntityContainerSpec extends FunSpec with Matchers with BeforeAndAfterAll{
     
     val testFileName = "entities.txt"
     
@@ -31,22 +31,22 @@ class EntityManagerSpec extends FunSpec with Matchers with BeforeAndAfterAll{
     describe(s"uploading data from entityFile") {
         it("corrupted data") {
             createFile(",header,")
-            val entityManager = new EntityManager(testFileName)
-            entityManager.isEmpty shouldBe true
+            val entityContainer = new EntityContainer(testFileName)
+            entityContainer.isEmpty shouldBe true
 
             intercept[NoSuchElementException] {
-                entityManager.getNextEntity
+                entityContainer.getNextEntity
             }
             releaseFile
         }
         
         it("valid data"){
             createFile(ft)
-            val entityManager = new EntityManager(testFileName)
-            entityManager.getNextEntity shouldBe Entity(Method.GET,"www.get.com","Accept: text/plain","")
-            entityManager.getNextEntity shouldBe Entity(Method.POST,"www.post.com","Accept: text/plain","post data")
-            entityManager.getNextEntity shouldBe Entity(Method.PUT,"www.put.com","","put data")
-            entityManager.getNextEntity shouldBe Entity(Method.GET,"www.get.com","Accept: text/plain","")
+            val entityContainer = new EntityContainer(testFileName)
+            entityContainer.getNextEntity shouldBe Entity(Method.GET,"www.get.com","Accept: text/plain","")
+            entityContainer.getNextEntity shouldBe Entity(Method.POST,"www.post.com","Accept: text/plain","post data")
+            entityContainer.getNextEntity shouldBe Entity(Method.PUT,"www.put.com","","put data")
+            entityContainer.getNextEntity shouldBe Entity(Method.GET,"www.get.com","Accept: text/plain","")
             releaseFile
         }
     }

@@ -2,7 +2,7 @@ package entities
 
 import java.util.NoSuchElementException
 
-class EntityManager(entityFileName: String) {
+class EntityContainer(entityFileName: String) {
     
     private val circular = {
         readEntityFile(entityFileName) match {
