@@ -1,5 +1,7 @@
 package entities
 
+import akka.http.scaladsl.model.HttpHeader
+import akka.http.scaladsl.model.headers.RawHeader
 import entities.Method.Method
 import play.api.libs.json.Json
 import utils.EnumJsonUtils
@@ -20,4 +22,14 @@ case class Entity (
 
 object Entity {
     implicit val fmtJson = Json.format[Entity]
+    
+    val headerSeparator = "\n" //CRLF
+    
+    def toHttpHeaderList(entity: Entity) : List[HttpHeader] = {
+        entity.headers.split(headerSeparator).map{header =>
+            val keyVal = header.split(":")
+            RawHeader(keyVal(0),keyVal(1))
+        }.toList
+    }
+    
 }
