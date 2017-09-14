@@ -28,7 +28,7 @@ object RequestContainer {
   */
 class RequestBuilder {
     
-    val ENTITY_SEPARATOR = "---END---"
+    val ENTITY_SEPARATOR = "---END---\n"
     
     def loadFromFile(fileName: String): List[Request] = {
         val lsOut: mutable.MutableList[Request] = mutable.MutableList.empty

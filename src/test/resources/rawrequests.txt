@@ -1,0 +1,23 @@
+GET /docs/index.html HTTP/1.1
+Host: www.test1.com
+Header: 1
+
+---END---
+PUT /docs/index.html HTTP/1.1
+Host: www.test2.com
+Header: 2
+
+{put}
+---END---
+POST /docs/index.html HTTP/1.1
+Host: www.test3.com
+Header: 3
+
+{post}
+---END---
+DELETE /docs/index.html HTTP/1.1
+Host: www.test4.com
+Header: 4
+
+{delete}
+

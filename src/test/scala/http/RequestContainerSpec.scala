@@ -10,6 +10,7 @@ class RequestContainerSpec extends FunSpec with Matchers with BeforeAndAfterAll 
     val testFileName = "requests.txt"
     
     val ft = scala.io.Source.fromResource("rawrequest.txt").mkString
+    val fts = scala.io.Source.fromResource("rawrequests.txt").mkString
     
     def createFile(data: String) = {
         val f = new File(testFileName)
@@ -41,13 +42,34 @@ class RequestContainerSpec extends FunSpec with Matchers with BeforeAndAfterAll 
             releaseFile
         }
         
-        it("valid data") {
+        it("valid request") {
             createFile(ft)
             val requestBuilder = new RequestBuilder()
             RequestContainer.setRequestList(requestBuilder.loadFromFile(testFileName))
             val req = RequestContainer.getNextRequest
             req shouldBe Request(Method.GET, "www.nowhere123.com", req.headers, "")
-            // RequestContainer.getNextRequest shouldBe Request(Method.GET, "www.get.com", List("Accept: text/plain"), "")
+            releaseFile
+        }
+        
+        it("multiple requests"){
+            createFile(fts)
+            val requestBuilder = new RequestBuilder()
+            RequestContainer.setRequestList(requestBuilder.loadFromFile(testFileName))
+            val req1 = RequestContainer.getNextRequest
+            req1.method shouldBe Method.GET
+            req1.postData shouldBe ""
+            val req2 = RequestContainer.getNextRequest
+            req2.method shouldBe Method.PUT
+            
+            req2.postData shouldBe "{put}"
+            val req3 = RequestContainer.getNextRequest
+            req3.method shouldBe Method.POST
+            req3.headers.contains("Header: 3") shouldBe true
+            req3.postData shouldBe "{post}"
+            val req4 = RequestContainer.getNextRequest
+            req4.method shouldBe Method.DELETE
+            req4.postData shouldBe "{delete}"
+            req4.uri shouldBe "www.test4.com"
             releaseFile
         }
     }

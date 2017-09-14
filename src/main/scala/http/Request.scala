@@ -34,7 +34,7 @@ object Request {
                    method = Method.withName(parser.getMethod),
                    uri = parser.getHost.get.trim,
                    headers = parser.getAllHeadersList,
-                   postData = parser.requestBody.toString
+                   postData = parser.requestBody.toString.trim
                )
     }
     
