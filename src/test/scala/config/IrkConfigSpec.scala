@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
 class IrkConfigSpec extends FunSpec with Matchers with BeforeAndAfterAll {
     
     
-    val ft = IrkConfig(sequential = true, 2, 5, Some("irk.conf"))
+    val ft = IrkConfig(sequential = true, 2, 5, 60,Some("irk.conf"))
     
     val configFileName = "irk.conf"
     

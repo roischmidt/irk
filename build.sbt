@@ -10,11 +10,13 @@ libraryDependencies ++= {
     val scalaTestV = "3.0.1"
     
     Seq(
-           "com.typesafe.play" %% "play-json" % playV,
-           "org.scalatest" %% "scalatest" % scalaTestV % "test",
-           "com.typesafe.akka" %% "akka-http" % akkaHttpV,
-           "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpV % Test
-
-       )
+        "com.typesafe.play" %% "play-json" % playV,
+        "org.scalatest" %% "scalatest" % scalaTestV % "test",
+        "com.softwaremill.sttp" %% "core" % "0.0.14",
+        "com.softwaremill.sttp" %% "async-http-client-backend-future" % "0.0.14",
+        "com.typesafe" % "config" % "1.3.1",
+        "com.typesafe.akka" %% "akka-http" % akkaHttpV
+    
+    )
 }
         

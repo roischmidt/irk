@@ -12,12 +12,14 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
   * @param sequential   : clients should send messages sequential or in parallel
   * @param numOfClients : number of http clients to use
   * @param numOfThreads : number of threads (connections) for every client
+  * @param duration : time to work in seconds
   * @param requestsPath : path to file of entities
   */
 case class IrkConfig(
     sequential: Boolean,
     numOfClients: Int,
     numOfThreads: Int,
+    duration: Long,
     requestsPath: Option[String]
 )
 
@@ -26,9 +28,10 @@ object IrkConfig {
     implicit val fmtJson = Json.format[IrkConfig]
     
     var conf: IrkConfig = IrkConfig(ConfigFactory.load().getBoolean("config.irk-config-sequential"),
-                                       ConfigFactory.load().getInt("config.irk-config-numOfClients"),
-                                       ConfigFactory.load().getInt("config.irk-config-numOfThreads"),
-                                       None)
+        ConfigFactory.load().getInt("config.irk-config-numOfClients"),
+        ConfigFactory.load().getInt("config.irk-config-numOfThreads"),
+        ConfigFactory.load().getInt("config.irk-duration-in-seconds"),
+        None)
     
     
     def loadFromFile(path: String): Option[IrkConfig] = {

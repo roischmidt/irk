@@ -10,17 +10,27 @@ import scala.collection.mutable
 object RequestContainer {
     
     private var circular: Iterator[Request] = Iterator.empty
+    private var requestList: List[Request] = List.empty
     
     def getNextRequest: Request = {
-        if (circular.isEmpty)
+        if (requestList.isEmpty)
             throw new NoSuchElementException("seq of entities is empty")
         circular.next()
     }
     
-    def setRequestList(requests: List[Request]) =
-        circular = Iterator.continually(requests).flatten
+    def setRequestList(requests: List[Request]) = {
+        requestList = requests
+        circular = Iterator.continually(requestList).flatten
+    }
     
-    def isEmpty = circular.isEmpty
+    def isEmpty = requestList.isEmpty
+    
+    def getAsList : List[Request] = requestList
+    
+    def clear =
+        requestList = List.empty
+    
+    
 }
 
 /**
@@ -51,6 +61,4 @@ class RequestBuilder {
         parser.parseRawRequest(httpRequest)
         List(Request.requestFromRawParser(parser))
     }
-    
-    
 }

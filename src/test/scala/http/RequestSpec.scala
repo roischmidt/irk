@@ -1,23 +1,11 @@
 package http
 
-import akka.http.scaladsl.model.headers.RawHeader
 import org.scalatest.{FunSpec, Matchers}
 import utils.HttpRawRequestParser
 
 class RequestSpec extends FunSpec with Matchers {
     
     describe("Request object") {
-        it("convert list of headers to list of HttpHeader") {
-            val headers = List("Server: LiteSpeed", "Connection: close", "X-Powered-By: W3 Total Cache/0.8", "Pragma: public")
-            val actualSorted = Request.headerstoHttpHeaderList(headers).sortBy(_.lowercaseName())
-            val expectedSorted = List(RawHeader("Server", "LiteSpeed"),
-                                         RawHeader("Connection", "close"),
-                                         RawHeader("X-Powered-By", "W3 Total Cache/0.8"),
-                                         RawHeader("Pragma", "public")).sortBy(_.lowercaseName)
-            actualSorted.head.name shouldBe expectedSorted.head.name
-            actualSorted.last.value shouldBe expectedSorted.last.value
-            
-        }
         
         it("parse request from raw http string") {
             val rawStr = scala.io.Source.fromResource("rawrequest.txt").mkString
@@ -33,7 +21,7 @@ class RequestSpec extends FunSpec with Matchers {
                                                  ).min)
             request.method shouldBe Method.GET
             request.uri shouldBe "www.nowhere123.com"
-            request.postData shouldBe ""
+            request.postData shouldBe None
         }
     }
     
