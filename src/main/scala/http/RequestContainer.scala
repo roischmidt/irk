@@ -25,7 +25,7 @@ object RequestContainer {
     
     def isEmpty = requestList.isEmpty
     
-    def getAsList : List[Request] = requestList
+    def getAsList: List[Request] = requestList
     
     def clear =
         requestList = List.empty
@@ -55,10 +55,12 @@ class RequestBuilder {
     
     def loadFromUrl(url: String): List[Request] = {
         val httpRequest =
-            "GET /test HTTP/1.1\r\nHost: [HOST]\r\nContent-Type: text/html; charset=utf-8\r\n\r\n".replace("[HOST]", url)
-        
-        val parser = new HttpRawRequestParser()
-        parser.parseRawRequest(httpRequest)
-        List(Request.requestFromRawParser(parser))
+            Request(
+                method = Method.GET,
+                uri = url,
+                headers = List.empty,
+                postData = None
+            )
+        List(httpRequest)
     }
 }
