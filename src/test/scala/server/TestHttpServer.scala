@@ -24,7 +24,7 @@ trait TestHttpServer
     import actorSystem.dispatcher
     
     protected implicit val materializer = ActorMaterializer()
-    protected val endpoint = uri"http://localhost:$port"
+    protected val endpoint = uri"irk.http://localhost:$port"
     
     override protected def beforeAll(): Unit = {
         Http().bindAndHandle(serverRoutes, "localhost", port).futureValue

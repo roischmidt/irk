@@ -1,8 +1,8 @@
-package http
+package irk.http
 
 import java.util.NoSuchElementException
 
-import utils.HttpRawRequestParser
+import irk.utils.HttpRawRequestParser
 
 import scala.collection.mutable
 

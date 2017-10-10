@@ -1,17 +1,16 @@
-package config
+package irk.config
 
 import java.io.FileNotFoundException
 
-import com.typesafe.config.ConfigFactory
 import play.api.libs.json.{JsError, JsSuccess, Json}
 
 /**
-  * main config file for running the irk
-  * config file name located in application.conf
+  * main irk.config file for running the irk
+  * irk.config file name located in application.conf
   *
   * @param sequential   : clients should send messages sequential or in parallel
-  * @param numOfClients : number of http clients to use
-  * @param numOfThreads : number of threads (connections) for every client
+  * @param numOfClients : number of irk.http clients to use
+  * @param numOfThreads : number of threads (connections) for every irk.client
   * @param duration : time to work in seconds
   * @param requestsPath : path to file of entities
   * @param getRequest : uri for a get request - used when needs to test single GET API call
@@ -33,7 +32,7 @@ object IrkConfig {
     
     
     def loadFromFile(path: String): Option[IrkConfig] = {
-        println("Loading config file....")
+        println("Loading irk.config file....")
         
         try {
             val configStr = scala.io.Source.fromFile(path, "UTF-8").getLines.mkString
@@ -60,7 +59,7 @@ object IrkConfig {
         s"""
           |run in sequence = ${config.sequential}
           |number of clients = ${config.numOfClients}
-          |number of threads per client = ${config.numOfThreads}
+          |number of threads per irk.client = ${config.numOfThreads}
           |running time in seconds = ${config.duration}
           |requests file location = ${config.requestsPath.getOrElse("NA")}
           |api to call = ${config.getRequest.getOrElse("NA")}

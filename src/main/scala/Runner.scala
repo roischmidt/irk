@@ -1,5 +1,5 @@
-import config.IrkConfig
-import http.{Method, Request, RequestBuilder, RequestContainer}
+import irk.config.IrkConfig
+import irk.http.{Method, Request, RequestBuilder, RequestContainer}
 
 /**
   *  main runner class. use scopt [https://github.com/scopt/scopt] in order to parse app arguments
@@ -24,7 +24,7 @@ object Runner extends App{
         
             opt[Int]('t', "threadsNum").action((t, conf) =>
                 conf.copy(numOfThreads = t)
-            ).text("number of threads per client")
+            ).text("number of threads per irk.client")
         
             opt[Int]('d', "duration").action((d, conf) =>
                 conf.copy(duration = d)

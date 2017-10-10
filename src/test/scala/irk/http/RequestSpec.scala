@@ -1,13 +1,13 @@
-package http
+package irk.http
 
 import org.scalatest.{FunSpec, Matchers}
-import utils.HttpRawRequestParser
+import irk.utils.HttpRawRequestParser
 
 class RequestSpec extends FunSpec with Matchers {
     
     describe("Request object") {
         
-        it("parse request from raw http string") {
+        it("parse request from raw irk.http string") {
             val rawStr = scala.io.Source.fromResource("rawrequest.txt").mkString
             val parser = new HttpRawRequestParser
             parser.parseRawRequest(rawStr)

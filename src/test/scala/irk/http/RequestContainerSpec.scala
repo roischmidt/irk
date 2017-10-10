@@ -1,4 +1,4 @@
-package http
+package irk.http
 
 import java.io.{File, PrintWriter}
 import java.util.NoSuchElementException

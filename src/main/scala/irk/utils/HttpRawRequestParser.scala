@@ -1,4 +1,4 @@
-package utils
+package irk.utils
 
 import java.io.{BufferedReader, StringReader}
 
@@ -11,7 +11,7 @@ case class HttpFormatException(msg: String, cause: Throwable = None.orNull) exte
   * request-header ; Section 5.3 | entity-header ) CRLF) ; Section 7.1 CRLF [
   * message-body ] ; Section 4.3
   *
-  * class was based on a java class from stackOverflow, written by gor Zelaya (https://stackoverflow.com/questions/13255622/parsing-raw-http-request)
+  * class was based on a java class from stackOverflow, written by gor Zelaya (https://stackoverflow.com/questions/13255622/parsing-raw-irk.http-request)
   * I translated to scala and added extra functionality
   **/
 class HttpRawRequestParser {

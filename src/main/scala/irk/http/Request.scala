@@ -1,8 +1,8 @@
-package http
+package irk.http
 
-import http.Method.Method
+import irk.http.Method.Method
 import play.api.libs.json.Json
-import utils.{EnumJsonUtils, HttpRawRequestParser}
+import irk.utils.{EnumJsonUtils, HttpRawRequestParser}
 
 object Method extends Enumeration {
     type Method = Value

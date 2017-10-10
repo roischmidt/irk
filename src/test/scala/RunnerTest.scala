@@ -1,4 +1,4 @@
-import config.IrkConfig
+import irk.config.IrkConfig
 import org.scalatest.{FunSpec, Matchers}
 
 class RunnerTest extends FunSpec with Matchers{
@@ -10,7 +10,7 @@ class RunnerTest extends FunSpec with Matchers{
             numOfThreads = 20,
             duration = 120,
             requestsPath = Some("/mnt/c/tmp/api.txt"),
-            getRequest = Some("http://test.com:8888"))
+            getRequest = Some("irk.http://test.com:8888"))
         
         it("valid args") {
             Runner.main(Array(
@@ -19,7 +19,7 @@ class RunnerTest extends FunSpec with Matchers{
                 "-t", s"${testConf.numOfThreads}",
                 "-d", s"${testConf.duration}",
                 "-f", s"${testConf.requestsPath.get}",
-                "http://test.com:8888"
+                "irk.http://test.com:8888"
             ))
     
             IrkConfig.conf shouldBe testConf

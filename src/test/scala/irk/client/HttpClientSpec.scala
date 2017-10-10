@@ -1,19 +1,17 @@
-package client
-
-import java.util.concurrent.TimeUnit
+package irk.client
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import com.softwaremill.sttp.{ForceWrapped, SttpBackend, TestHttpServer}
-import http.{Method, Request, RequestContainer}
+import irk.http.{Method, Request, RequestContainer}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{path => _, _}
-import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import scala.language.higherKinds
 
 class HttpClientSpec extends FunSpec with Matchers

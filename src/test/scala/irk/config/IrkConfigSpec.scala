@@ -1,4 +1,4 @@
-package config
+package irk.config
 
 import java.io.{File, PrintWriter}
 
@@ -28,7 +28,7 @@ class IrkConfigSpec extends FunSpec with Matchers with BeforeAndAfterAll {
         releaseFile
     }
     
-    describe(s"testing config file") {
+    describe(s"testing irk.config file") {
         it("file doesn't exists") {
             IrkConfig.loadFromFile(configFileName) shouldBe None
         }

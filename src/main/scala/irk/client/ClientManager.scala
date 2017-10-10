@@ -1,6 +1,6 @@
-package client
+package irk.client
 
-import config.IrkConfig
+import irk.config.IrkConfig
 
 object ClientManager {
 

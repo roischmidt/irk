@@ -1,10 +1,10 @@
-package client
+package irk.client
 
 import java.util.concurrent.Executors
 
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
-import http.{Method, Request, RequestContainer}
+import irk.http.{Method, Request, RequestContainer}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,7 +42,7 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     }
     
     /**
-      * main client function. start all requests until time ends
+      * main irk.client function. start all requests until time ends
       */
     def run =
         if (sequenced)

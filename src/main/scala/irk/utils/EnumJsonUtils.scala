@@ -1,4 +1,4 @@
-package utils
+package irk.utils
 
 import play.api.libs.json._
 
