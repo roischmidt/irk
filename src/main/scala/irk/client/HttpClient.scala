@@ -5,11 +5,12 @@ import java.util.concurrent.Executors
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import irk.http.{Method, Request, RequestContainer}
+import irk.utils.Instrumented
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean = false) {
+class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean = false) extends Instrumented {
     
     implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numOfThreads))
     
@@ -62,12 +63,17 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
             s"http://$uri"
         }
     
-    private def sendSequenceParallel: Unit =
+    private def sendSequenceParallel: Unit = {
         while (duration.hasTimeLeft()) {
             sendRequest(RequestContainer.getNextRequest).map { response =>
-                println(response.code)
+                metrics.meter(s"${response.code}").mark()
+            }.recoverWith {
+                case e: Exception =>
+                    throw e
             }
         }
+        
+    }
     
     
     private def sendSequenceOrdered: Unit = {
@@ -82,8 +88,15 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                         curr <- (sendRequest _).apply(currentTuple)
                     } yield prev :+ curr
                 })
-            }.andThen {
-                case _ => sequenceEnd = true
+            }.map { responseList =>
+                responseList.foreach { response =>
+                    metrics.meter(s"${response.code}").mark()
+                }
+                
+                sequenceEnd = true
+            }.recoverWith {
+                case e: Exception =>
+                    throw e
             }
         }
     }

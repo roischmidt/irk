@@ -1,4 +1,5 @@
 import irk.config.IrkConfig
+import irk.utils.ScoptArgsParser
 import org.scalatest.{FunSpec, Matchers}
 
 class RunnerTest extends FunSpec with Matchers{
@@ -26,7 +27,8 @@ class RunnerTest extends FunSpec with Matchers{
         }
         
         it("requestPath and getRequest missing"){
-            Runner.parseArgs(Array(
+            val argsPArser = new ScoptArgsParser
+            argsPArser.parseArgs(Array(
                 "-s", s"${testConf.sequential.compare(false)}",
                 "-c", s"${testConf.numOfClients}",
                 "-t", s"${testConf.numOfThreads}",
@@ -45,7 +47,8 @@ class RunnerTest extends FunSpec with Matchers{
         }
         
         it("bad args (-g)") {
-            Runner.parseArgs(Array(
+            val argsPArser = new ScoptArgsParser
+            argsPArser.parseArgs(Array(
                 "-g", s"${testConf.sequential.compare(false)}",
                 "-c", s"${testConf.numOfClients}",
                 "-t", s"${testConf.numOfThreads}",
