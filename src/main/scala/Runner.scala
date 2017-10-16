@@ -15,8 +15,8 @@ object Runner extends App with Instrumented {
         runTime.time {
             ClientManager.runClients()
         }
-        val elapsedTimeInSeconfs = TimeUnit.NANOSECONDS.toSeconds(runTime.max)
-        println(s"${Metrics.sumMeters() / elapsedTimeInSeconfs} REQ/SEC")
+        val elapsedTimeInSeconds = TimeUnit.NANOSECONDS.toSeconds(runTime.max)
+        println(s"${Metrics.sumMeters() / elapsedTimeInSeconds} REQ/SEC")
     } else {
         System.exit(0)
     }

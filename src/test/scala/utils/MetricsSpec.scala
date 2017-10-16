@@ -14,6 +14,12 @@ class MetricsSpec extends FunSpec with Matchers with Instrumented {
             Metrics.sumMeters() - previousSum shouldBe 12
     
         }
+        
+        it("metersToSimpleNameStringList") {
+            metrics.meter("non.simple.name").mark(10)
+            metrics.meter("non.simple.name2").mark(20)
+            Metrics.metersToSimpleNameStringList shouldBe List(("name",10),("name2",20))
+        }
     }
     
 }
