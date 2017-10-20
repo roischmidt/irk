@@ -1,5 +1,9 @@
 package irk.utils
 
+
+
+import com.codahale.metrics.Meter
+
 import scala.collection.JavaConverters._
 
 object Metrics {
@@ -15,6 +19,11 @@ object Metrics {
     
     def sumMeters() : Long =
         metersToSimpleNameStringList.map(e => e._2).sum
+    
+    def getMeterBySimpleName(simpleName: String) : Option[Meter] =
+        metricRegistry.getMeters().asScala.find {
+            e => e._1.contains(s".$simpleName")
+        }.map(x => x._2)
     
 }
 

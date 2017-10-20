@@ -1,6 +1,7 @@
 package irk.client
 
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
@@ -13,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean = false) extends Instrumented {
     
     implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numOfThreads))
-    
+    val shouldRun : Boolean = true
     
     implicit val sttpBackend = AsyncHttpClientFutureBackend()
     
@@ -45,11 +46,12 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     /**
       * main irk.client function. start all requests until time ends
       */
-    def run =
+    def run : Future[Boolean] =
         if (sequenced)
             sendSequenceOrdered
         else
             sendSequenceParallel
+    
     
     /**
       * we must hae scheme in order for sttp to work
@@ -63,7 +65,7 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
             s"http://$uri"
         }
     
-    private def sendSequenceParallel: Unit = {
+    private def sendSequenceParallel: Future[Boolean] = Future {
         while (duration.hasTimeLeft()) {
             sendRequest(RequestContainer.getNextRequest).map { response =>
                 metrics.meter(s"${response.code}").mark()
@@ -72,11 +74,11 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                     throw e
             }
         }
-        
+        true
     }
     
     
-    private def sendSequenceOrdered: Unit = {
+    private def sendSequenceOrdered: Future[Boolean] = Future {
         var sequenceEnd = true
         while (duration.hasTimeLeft()) {
             if (sequenceEnd) {
@@ -99,6 +101,7 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                     throw e
             }
         }
+        true
     }
     
     

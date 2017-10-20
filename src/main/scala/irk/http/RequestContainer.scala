@@ -1,5 +1,6 @@
 package irk.http
 
+import java.io.FileNotFoundException
 import java.util.NoSuchElementException
 
 import irk.utils.HttpRawRequestParser
@@ -18,10 +19,11 @@ object RequestContainer {
         circular.next()
     }
     
-    def setRequestList(requests: List[Request]) = {
-        requestList = requests
-        circular = Iterator.continually(requestList).flatten
-    }
+    def setRequestList(requests: List[Request]) =
+        if(requests.nonEmpty) {
+            requestList = requests
+            circular = Iterator.continually(requestList).flatten
+        }
     
     def isEmpty = requestList.isEmpty
     
@@ -42,14 +44,21 @@ class RequestBuilder {
     
     def loadFromFile(fileName: String): List[Request] = {
         val lsOut: mutable.MutableList[Request] = mutable.MutableList.empty
-        val httpFileStr = scala.io.Source.fromFile(fileName, "UTF-8").mkString
-        if (httpFileStr.nonEmpty) {
-            httpFileStr.split(ENTITY_SEPARATOR).foreach { req =>
-                val parser = new HttpRawRequestParser()
-                parser.parseRawRequest(req)
-                lsOut += Request.requestFromRawParser(parser)
+        try {
+            val httpFileStr = scala.io.Source.fromFile(fileName, "UTF-8").mkString
+            if (httpFileStr.nonEmpty) {
+                httpFileStr.split(ENTITY_SEPARATOR).foreach { req =>
+                    val parser = new HttpRawRequestParser()
+                    parser.parseRawRequest(req)
+                    lsOut += Request.requestFromRawParser(parser)
+                }
             }
+        } catch {
+            case e : FileNotFoundException =>
+                println(s"$fileName - No such file or directory")
+                System.exit(0)
         }
+       
         lsOut.toList
     }
     

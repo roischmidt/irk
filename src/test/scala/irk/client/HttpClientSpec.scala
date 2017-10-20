@@ -11,7 +11,6 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{path => _, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 import scala.language.higherKinds
 
 class HttpClientSpec extends FunSpec with Matchers
@@ -25,36 +24,64 @@ class HttpClientSpec extends FunSpec with Matchers
     
     implicit val defaultPatience = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
     
+    var responseTimeMap : Map[Int,Long] = Map.empty // responses map - key=responseCode, value=TimeStamp in millis
+    
+    def putIfAbsent(key: Int,value: Long) =
+        responseTimeMap.getOrElse(key, {
+            responseTimeMap = responseTimeMap.updated(key, value)
+        })
+    
     override def serverRoutes: Route =
         pathPrefix("test") {
             path("200".?) {
                 get {
-                    complete(HttpResponse(StatusCodes.OK))
+                    complete {
+                        putIfAbsent(StatusCodes.OK.intValue,System.currentTimeMillis())
+                        HttpResponse(StatusCodes.OK)
+                    }
                 } ~ put {
                     entity(as[String]) { body: String =>
-                        complete(HttpResponse(StatusCodes.OK, entity = body))
+                        complete {
+                            putIfAbsent(StatusCodes.OK.intValue,System.currentTimeMillis())
+                            HttpResponse(StatusCodes.OK,entity = body)
+                        }
                     }
                 } ~ post {
                     entity(as[String]) { body: String =>
-                        complete(HttpResponse(StatusCodes.OK, entity = body))
+                        complete {
+                            putIfAbsent(StatusCodes.OK.intValue,System.currentTimeMillis())
+                            HttpResponse(StatusCodes.OK,entity = body)
+                        }
                     }
                 } ~ delete {
                     entity(as[String]) { body: String =>
-                        complete(HttpResponse(StatusCodes.OK, entity = body))
+                        complete {
+                            putIfAbsent(StatusCodes.OK.intValue,System.currentTimeMillis())
+                            HttpResponse(StatusCodes.OK,entity = body)
+                        }
                     }
                 }
                 
             } ~ path("201".?) {
                 get {
-                    complete(HttpResponse(StatusCodes.Created))
+                    complete {
+                        putIfAbsent(StatusCodes.Created.intValue,System.currentTimeMillis())
+                        HttpResponse(StatusCodes.Created)
+                    }
                 }
             } ~ path("202".?) {
                 get {
-                    complete(HttpResponse(StatusCodes.Accepted))
+                    complete {
+                        putIfAbsent(StatusCodes.Accepted.intValue,System.currentTimeMillis())
+                        HttpResponse(StatusCodes.Accepted)
+                    }
                 }
             } ~ path("203".?) {
                 get {
-                    complete(HttpResponse(StatusCodes.NonAuthoritativeInformation))
+                    complete {
+                        putIfAbsent(StatusCodes.NonAuthoritativeInformation.intValue,System.currentTimeMillis())
+                        HttpResponse(StatusCodes.NonAuthoritativeInformation)
+                    }
                 }
                 
             }
@@ -78,12 +105,11 @@ class HttpClientSpec extends FunSpec with Matchers
         forceResponse: ForceWrappedValue[R]): Unit = {
         
         val numOfThreads = 2
-        val ttl = 2.seconds
         
         closeBackends = backend.close _ :: closeBackends
         
         it("test simple get request") {
-            val client = new HttpClient(numOfThreads, ttl.toSeconds)
+            val client = new HttpClient(numOfThreads,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) { res =>
                 res.code shouldBe 200
@@ -91,7 +117,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple put request") {
-            val client = new HttpClient(numOfThreads, ttl.toSeconds)
+            val client = new HttpClient(numOfThreads,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) { res =>
                 res.code shouldBe 200
@@ -100,7 +126,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple delete request") {
-            val client = new HttpClient(numOfThreads, ttl.toSeconds)
+            val client = new HttpClient(numOfThreads,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) { res =>
                 res.code shouldBe 200
@@ -109,7 +135,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple post request") {
-            val client = new HttpClient(numOfThreads, ttl.toSeconds)
+            val client = new HttpClient(numOfThreads,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) { res =>
                 res.code shouldBe 200
@@ -118,31 +144,38 @@ class HttpClientSpec extends FunSpec with Matchers
         }
         
         it("send ordered sequence of requests") {
+            responseTimeMap = Map.empty
             val baseUri = "localhost:9999/test"
             val requests = List(
                 Request(Method.GET,s"$baseUri/200",List.empty),
                 Request(Method.GET,s"$baseUri/201",List.empty),
                 Request(Method.GET,s"$baseUri/202",List.empty),
                 Request(Method.GET,s"$baseUri/203",List.empty))
-            val startTime = System.currentTimeMillis()
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(numOfThreads, ttl.toSeconds,sequenced = true)
+            val client = new HttpClient(numOfThreads,1,sequenced = true)
             client.run
-            System.currentTimeMillis() - startTime should be >= ttl.toMillis
+            Thread.sleep(1000)
+            responseTimeMap(StatusCodes.OK.intValue) should be < responseTimeMap(StatusCodes.Created.intValue)
+            responseTimeMap(StatusCodes.Created.intValue) should be < responseTimeMap(StatusCodes.Accepted.intValue)
+            responseTimeMap(StatusCodes.Accepted.intValue) should be < responseTimeMap(StatusCodes.NonAuthoritativeInformation.intValue)
         }
     
         it("send sequence of requests in parallel") {
+            responseTimeMap = Map.empty
             val baseUri = "localhost:9999/test"
             val requests = List(
                 Request(Method.GET,s"$baseUri/200",List.empty),
                 Request(Method.GET,s"$baseUri/201",List.empty),
                 Request(Method.GET,s"$baseUri/202",List.empty),
                 Request(Method.GET,s"$baseUri/203",List.empty))
-            val startTime = System.currentTimeMillis()
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(numOfThreads, ttl.toSeconds, sequenced = false)
+            val client = new HttpClient(numOfThreads,1, sequenced = false)
             client.run
-            System.currentTimeMillis() - startTime should be >= ttl.toMillis
+            Thread.sleep(1000)
+            responseTimeMap.get(StatusCodes.OK.intValue).nonEmpty shouldBe true
+            responseTimeMap.get(StatusCodes.Created.intValue).nonEmpty shouldBe true
+            responseTimeMap.get(StatusCodes.Accepted.intValue).nonEmpty shouldBe true
+            responseTimeMap.get(StatusCodes.NonAuthoritativeInformation.intValue).nonEmpty shouldBe true
         }
         
         
