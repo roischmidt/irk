@@ -2,7 +2,7 @@ import irk.config.IrkConfig
 import irk.utils.ScoptArgsParser
 import org.scalatest.{FunSpec, Matchers}
 
-class RunnerTest extends FunSpec with Matchers{
+class RunnerSpec extends FunSpec with Matchers{
     
     describe("test main arguments") {
         val argsParser = new ScoptArgsParser
@@ -55,6 +55,11 @@ class RunnerTest extends FunSpec with Matchers{
                 "-t", s"${testConf.numOfThreads}",
                 "-d", s"${testConf.duration}"
             )) shouldBe false
+        }
+        
+        it("secondsToString") {
+            Runner.secondsToString(4444) shouldBe "00:00:04 (444)"
+            Runner.secondsToString(9000000) shouldBe "02:30:00 (0)"
         }
     }
     

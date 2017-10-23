@@ -3,6 +3,7 @@ package irk.client
 import java.util.concurrent.Executors
 
 import irk.config.IrkConfig
+import irk.utils.Metrics
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -23,6 +24,10 @@ object ClientManager {
         val f = Future sequence futureClients
         f map {
             results =>
+                //print results map
+                println(Metrics.metersToSimpleNameStringList.map(
+                    e => s"Http Code [${e._1}] occurred ${e._2} times"
+                ).mkString("\n"))
                 results.forall(x => x)
         } recoverWith {
             case e =>

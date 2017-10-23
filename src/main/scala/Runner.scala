@@ -17,13 +17,24 @@ object Runner extends App with Instrumented {
     val argsParser = new ScoptArgsParser
     if (argsParser.parseArgs(args)) {
         runTime.time {
-            Await.result(ClientManager.runClients(),Duration(IrkConfig.conf.duration + 1,TimeUnit.SECONDS)) // blocking method
+            if (!Await.result(ClientManager.runClients(), Duration(IrkConfig.conf.duration + 1, TimeUnit.SECONDS))) // blocking method
+                System.exit(0)
         }
-        println(s"ran for ${runTime.max}")
+        println(s"ran for ${secondsToString(TimeUnit.NANOSECONDS.toMillis(runTime.max))}")
         val elapsedTimeInSeconds = TimeUnit.NANOSECONDS.toSeconds(runTime.max)
         println(s"${Metrics.sumMeters() / elapsedTimeInSeconds} REQ/SEC")
     } else {
         System.exit(0)
     }
+    
+    def secondsToString(millis: Long) : java.lang.String = {
+        val hrs = MILLISECONDS.toHours(millis) % 24
+        val min = MILLISECONDS.toMinutes(millis) % 60
+        val sec = MILLISECONDS.toSeconds(millis) % 60
+        val mls = millis % 1000
+    
+        f"$hrs%02d:$min%02d:$sec%02d ($mls)"
+    }
+    
     
 }
