@@ -31,7 +31,7 @@ object ClientManager {
                 results.forall(x => x)
         } recoverWith {
             case e =>
-                println(s"error doing spread ${e.getMessage}")
+                println(s"spread error: ${e.getMessage}")
                 Future.successful(false)
         }
     }
