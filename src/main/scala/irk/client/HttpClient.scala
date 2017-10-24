@@ -1,8 +1,8 @@
 package irk.client
 
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, TimeUnit}
 
+import com.typesafe.config.ConfigFactory
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import irk.http.{Method, Request, RequestContainer}
@@ -16,9 +16,14 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numOfThreads))
     val shouldRun : Boolean = true
     
-    implicit val sttpBackend = AsyncHttpClientFutureBackend()
+    val connectionTimeout = ConfigFactory.load().getDuration("irk.sttp.connectionTimeout")
+    
+    implicit val sttpBackend = AsyncHttpClientFutureBackend(
+        connectionTimeout = FiniteDuration(connectionTimeout.toMillis,TimeUnit.MILLISECONDS)
+    )
     
     val duration: Deadline = timeoutInSeconds.seconds.fromNow
+    
     
     
     def sendRequest(request: Request): Future[Response[String]] = {
@@ -69,9 +74,9 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
         while (duration.hasTimeLeft()) {
             sendRequest(RequestContainer.getNextRequest).map { response =>
                 metrics.meter(s"${response.code}").mark()
-            }.recoverWith {
+            }.recover {
                 case e: Exception =>
-                    throw e
+                    metrics.meter(s"${e.getMessage}").mark()
             }
         }
         true
@@ -96,9 +101,9 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                 }
                 
                 sequenceEnd = true
-            }.recoverWith {
+            }.recover {
                 case e: Exception =>
-                    throw e
+                    metrics.meter(s"${e.getMessage}").mark()
             }
         }
         true
