@@ -40,8 +40,8 @@ object Request {
     }
     
     def headersToMap(headers: List[String]): Map[String, String] = {
-        headers map (_.split(":")) map {
-            case Array(k, v) => (k, v)
+        headers map (_.split(":",2)) map {
+            case Array(k, v) => (k.trim, v.trim)
         } toMap
     }
     

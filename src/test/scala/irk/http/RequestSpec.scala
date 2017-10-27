@@ -23,6 +23,13 @@ class RequestSpec extends FunSpec with Matchers {
             request.uri shouldBe "www.nowhere123.com"
             request.postData shouldBe None
         }
+        
+        it("headersToMap") {
+            val headerList = List("Content-Type: application/json","Host: localhost:1234","X-Rtbkit-Timestamp: 21739172319")
+            Request.headersToMap(headerList) shouldBe Map("Content-Type" -> "application/json",
+                "Host" -> "localhost:1234",
+            "X-Rtbkit-Timestamp" -> "21739172319")
+        }
     }
     
 }

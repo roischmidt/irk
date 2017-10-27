@@ -1,5 +1,6 @@
 package irk.client
 
+import java.time
 import java.util.concurrent.{Executors, TimeUnit}
 
 import com.typesafe.config.ConfigFactory
@@ -16,9 +17,9 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numOfThreads))
     val shouldRun : Boolean = true
     
-    val connectionTimeout = ConfigFactory.load().getDuration("irk.sttp.connectionTimeout")
+    val connectionTimeout: time.Duration = ConfigFactory.load().getDuration("irk.sttp.connectionTimeout")
     
-    implicit val sttpBackend = AsyncHttpClientFutureBackend(
+    implicit val sttpBackend: SttpBackend[Future, Nothing] = AsyncHttpClientFutureBackend(
         connectionTimeout = FiniteDuration(connectionTimeout.toMillis,TimeUnit.MILLISECONDS)
     )
     
