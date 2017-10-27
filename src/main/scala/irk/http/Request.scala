@@ -30,7 +30,7 @@ object Request {
             throw RequestException("host is empty")
         Request(
             method = Method.withName(parser.getMethod),
-            uri = parser.getHost.get.trim,
+            uri = s"${parser.getHost.get.trim}${parser.getPath}",
             headers = parser.getAllHeadersList,
             postData = if (parser.requestBody.length() > 0)
                 Some(parser.requestBody.toString.trim)

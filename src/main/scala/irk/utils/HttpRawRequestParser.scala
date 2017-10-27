@@ -94,4 +94,13 @@ class HttpRawRequestParser {
     def getHost: Option[String] = requestHeaders.get("Host").orElse(requestHeaders.get("host").orElse(requestHeaders.get("HOST")))
     
     def getMethod: String = requestLine.trim.split(" ").head
+    
+    /*
+        GET /echo/500 HTTP/1.1
+        if we have more than one space means we have path
+     */
+    def getPath: String = requestLine.count(_ == ' ') match {
+        case x if x > 1 => requestLine.trim.split(" ")(1)
+        case _ => ""
+    }
 }
