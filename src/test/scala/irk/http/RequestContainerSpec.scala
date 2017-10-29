@@ -48,7 +48,7 @@ class RequestContainerSpec extends FunSpec with Matchers with BeforeAndAfterAll 
             val requestBuilder = new RequestBuilder()
             RequestContainer.setRequestList(requestBuilder.loadFromFile(testFileName))
             val req = RequestContainer.getNextRequest
-            req shouldBe Request(Method.GET, "www.nowhere123.com", req.headers)
+            req shouldBe Request(Method.GET, "www.nowhere123.com/docs/index.html", req.headers)
             releaseFile
         }
         
@@ -70,7 +70,7 @@ class RequestContainerSpec extends FunSpec with Matchers with BeforeAndAfterAll 
             val req4 = RequestContainer.getNextRequest
             req4.method shouldBe Method.DELETE
             req4.postData shouldBe Some("{delete}")
-            req4.uri shouldBe "www.test4.com"
+            req4.uri shouldBe "www.test4.com/docs/index.html"
             releaseFile
         }
     }

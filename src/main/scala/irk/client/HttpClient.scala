@@ -3,28 +3,33 @@ package irk.client
 import java.time
 import java.util.concurrent.{Executors, TimeUnit}
 
-import com.typesafe.config.ConfigFactory
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
+import com.typesafe.config.ConfigFactory
 import irk.http.{Method, Request, RequestContainer}
 import irk.utils.Instrumented
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean = false) extends Instrumented {
     
-    implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(numOfThreads))
-    val shouldRun : Boolean = true
+    val FINISHED = true
+    
+    implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(
+        Executors.newFixedThreadPool(numOfThreads)
+    )
+    
+    val shouldRun: Boolean = true
     
     val connectionTimeout: time.Duration = ConfigFactory.load().getDuration("irk.sttp.connectionTimeout")
     
     implicit val sttpBackend: SttpBackend[Future, Nothing] = AsyncHttpClientFutureBackend(
-        connectionTimeout = FiniteDuration(connectionTimeout.toMillis,TimeUnit.MILLISECONDS)
-    )
+        connectionTimeout = FiniteDuration(connectionTimeout.toMillis, TimeUnit.MILLISECONDS)
+    )(ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor()))
     
     val duration: Deadline = timeoutInSeconds.seconds.fromNow
-    
     
     
     def sendRequest(request: Request): Future[Response[String]] = {
@@ -52,7 +57,7 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     /**
       * main irk.client function. start all requests until time ends
       */
-    def run : Future[Boolean] =
+    def run: Future[Boolean] =
         if (sequenced)
             sendSequenceOrdered
         else
@@ -73,14 +78,14 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
     
     private def sendSequenceParallel: Future[Boolean] = Future {
         while (duration.hasTimeLeft()) {
-            sendRequest(RequestContainer.getNextRequest).map { response =>
-                metrics.meter(s"${response.code}").mark()
-            }.recover {
-                case e: Exception =>
+            sendRequest(RequestContainer.getNextRequest).onComplete {
+                case Success(response) =>
+                    metrics.meter(s"${response.code}").mark()
+                case Failure(e) =>
                     metrics.meter(s"${e.getMessage}").mark()
             }
         }
-        true
+        FINISHED
     }
     
     
@@ -96,18 +101,18 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                         curr <- (sendRequest _).apply(currentTuple)
                     } yield prev :+ curr
                 })
-            }.map { responseList =>
-                responseList.foreach { response =>
-                    metrics.meter(s"${response.code}").mark()
-                }
-                
-                sequenceEnd = true
-            }.recover {
-                case e: Exception =>
+            }.onComplete {
+                case Success(responseList) =>
+                    responseList.foreach { response =>
+                        metrics.meter(s"${response.code}").mark()
+                    }
+                    
+                    sequenceEnd = true
+                case Failure(e) =>
                     metrics.meter(s"${e.getMessage}").mark()
             }
         }
-        true
+        FINISHED
     }
     
     

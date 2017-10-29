@@ -3,26 +3,28 @@ package irk.http
 import java.io.FileNotFoundException
 import java.util.NoSuchElementException
 
-import irk.utils.HttpRawRequestParser
+import irk.utils.{CyclicCounter, HttpRawRequestParser}
 
 import scala.collection.mutable
 
 
+
 object RequestContainer {
     
-    private var circular: Iterator[Request] = Iterator.empty
+    var cyclicCounter: CyclicCounter = _
+    
     private var requestList: List[Request] = List.empty
     
     def getNextRequest: Request = {
         if (requestList.isEmpty)
             throw new NoSuchElementException("seq of entities is empty")
-        circular.next()
+        requestList(cyclicCounter.incrementAndGet)
     }
     
     def setRequestList(requests: List[Request]) =
         if(requests.nonEmpty) {
             requestList = requests
-            circular = Iterator.continually(requestList).flatten
+            cyclicCounter = new CyclicCounter(requests.size - 1)
         }
     
     def isEmpty = requestList.isEmpty

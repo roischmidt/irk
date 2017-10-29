@@ -20,7 +20,7 @@ class RequestSpec extends FunSpec with Matchers {
                                                      "User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)"
                                                  ).min)
             request.method shouldBe Method.GET
-            request.uri shouldBe "www.nowhere123.com"
+            request.uri shouldBe "www.nowhere123.com/docs/index.html"
             request.postData shouldBe None
         }
         
