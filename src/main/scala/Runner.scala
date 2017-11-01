@@ -17,12 +17,13 @@ object Runner extends App with Instrumented {
     val argsParser = new ScoptArgsParser
     if (argsParser.parseArgs(args)) {
         runTime.time {
-            if (!Await.result(ClientManager.runClients(), Duration(IrkConfig.conf.duration + 1, TimeUnit.SECONDS))) // blocking method
+            if (!Await.result(ClientManager.runClients(), IrkConfig.conf.duration.plus(1.seconds))) // blocking method
                 System.exit(0)
         }
-        println(s"ran for ${secondsToString(TimeUnit.NANOSECONDS.toMillis(runTime.max))}")
         val elapsedTimeInSeconds = TimeUnit.NANOSECONDS.toSeconds(runTime.max)
-        println(s"${Metrics.sumMeters() / elapsedTimeInSeconds} REQ/SEC")
+        val requestCount = Metrics.getCounterBySimpleName("requestCount").get.getCount
+        println(s"Total requests: $requestCount")
+        println(s"${ requestCount / elapsedTimeInSeconds} REQ/SEC")
     }
     System.exit(0)
     

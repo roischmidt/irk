@@ -1,15 +1,20 @@
 package irk.client
 
+import java.util.concurrent.Executors
+
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import com.softwaremill.sttp.{ForceWrapped, SttpBackend, TestHttpServer}
+import irk.config.IrkConfig
 import irk.http.{Method, Request, RequestContainer}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{path => _, _}
 
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.higherKinds
 
@@ -103,13 +108,15 @@ class HttpClientSpec extends FunSpec with Matchers
     def runTests[R[_]](name: String)(
         implicit backend: SttpBackend[R, Nothing],
         forceResponse: ForceWrappedValue[R]): Unit = {
-        
-        val numOfThreads = 2
+    
+        val ConnectionExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(
+            Executors.newFixedThreadPool(2)
+        )
         
         closeBackends = backend.close _ :: closeBackends
         
         it("test simple get request") {
-            val client = new HttpClient(numOfThreads,1)
+            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) { res =>
                 res.code shouldBe 200
@@ -117,7 +124,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple put request") {
-            val client = new HttpClient(numOfThreads,1)
+            val client = new HttpClient(1.second)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) { res =>
                 res.code shouldBe 200
@@ -126,7 +133,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple delete request") {
-            val client = new HttpClient(numOfThreads,1)
+            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) { res =>
                 res.code shouldBe 200
@@ -135,7 +142,7 @@ class HttpClientSpec extends FunSpec with Matchers
         }
     
         it("test simple post request") {
-            val client = new HttpClient(numOfThreads,1)
+            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) { res =>
                 res.code shouldBe 200
@@ -152,7 +159,7 @@ class HttpClientSpec extends FunSpec with Matchers
                 Request(Method.GET,s"$baseUri/202",List.empty),
                 Request(Method.GET,s"$baseUri/203",List.empty))
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(numOfThreads,1,sequenced = true)
+            val client = new HttpClient(1.seconds,sequenced = true)(ConnectionExecutionContextPool)
             client.run
             Thread.sleep(1000)
             responseTimeMap(StatusCodes.OK.intValue) should be < responseTimeMap(StatusCodes.Created.intValue)
@@ -169,7 +176,7 @@ class HttpClientSpec extends FunSpec with Matchers
                 Request(Method.GET,s"$baseUri/202",List.empty),
                 Request(Method.GET,s"$baseUri/203",List.empty))
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(numOfThreads,1, sequenced = false)
+            val client = new HttpClient(11.seconds, sequenced = false)(ConnectionExecutionContextPool)
             client.run
             Thread.sleep(1000)
             responseTimeMap.get(StatusCodes.OK.intValue).nonEmpty shouldBe true

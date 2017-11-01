@@ -3,23 +3,25 @@ package irk.utils
 import irk.config.IrkConfig
 import irk.http.{RequestBuilder, RequestContainer}
 
+import scala.concurrent.duration.Duration
+
 class ScoptArgsParser {
     
     def parseArgs(args: Array[String]) : Boolean = {
         val parser = new scopt.OptionParser[IrkConfig]("scopt") {
             head("scopt", "3.x")
             
-            opt[Int]('c', "clientsNum").action((c, conf) =>
-                conf.copy(numOfClients = c)
+            opt[Int]('c', "connectionsNum").action((c, conf) =>
+                conf.copy(numOfConnections = c)
             ).text("number of clients")
             
             opt[Int]('t', "threadsNum").action((t, conf) =>
                 conf.copy(numOfThreads = t)
             ).text("number of threads per irk.client")
             
-            opt[Int]('d', "duration").action((d, conf) =>
-                conf.copy(duration = d)
-            ).text("duration in seconds")
+            opt[String]('d', "duration").action((d, conf) =>
+                conf.copy(duration = Duration( d.replace("m","minute")))
+            ).text("duration (2s,15m,1h)")
             
             opt[Int]('s', "sequenced").action((s, conf) =>
                 conf.copy(sequential = s == 1)

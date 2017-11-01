@@ -13,13 +13,9 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean = false) extends Instrumented {
+class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfConnections: ExecutionContext) extends Instrumented {
     
     val FINISHED = true
-    
-    implicit val clientExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(
-        Executors.newFixedThreadPool(numOfThreads)
-    )
     
     val shouldRun: Boolean = true
     
@@ -29,7 +25,7 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
         connectionTimeout = FiniteDuration(connectionTimeout.toMillis, TimeUnit.MILLISECONDS)
     )(ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor()))
     
-    val duration: Deadline = timeoutInSeconds.seconds.fromNow
+    val duration: Deadline = FiniteDuration(timeout._1,timeout._2).fromNow
     
     
     def sendRequest(request: Request): Future[Response[String]] = {
@@ -50,8 +46,8 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                         .headers(Request.headersToMap(request.headers))
                         .body(request.postData.getOrElse(""))
         }
+        metrics.counter("requestCount").inc()
         req.send()
-        
     }
     
     /**
@@ -83,8 +79,10 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                     metrics.meter(s"${response.code}").mark()
                 case Failure(e) =>
                     metrics.meter(s"${e.getMessage}").mark()
+                    metrics.counter("requestCount").dec()
             }
         }
+        sttpBackend.close()
         FINISHED
     }
     
@@ -110,8 +108,10 @@ class HttpClient(numOfThreads: Int, timeoutInSeconds: Long, sequenced: Boolean =
                     sequenceEnd = true
                 case Failure(e) =>
                     metrics.meter(s"${e.getMessage}").mark()
+                    metrics.counter("requestCount").dec()
             }
         }
+        sttpBackend.close()
         FINISHED
     }
     

@@ -3,11 +3,12 @@ package irk.config
 import java.io.{File, PrintWriter}
 
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
+import scala.concurrent.duration._
 
 class IrkConfigSpec extends FunSpec with Matchers with BeforeAndAfterAll {
     
     
-    val ft = IrkConfig(sequential = true, 2, 5, 60,Some("irk.conf"))
+    val ft = IrkConfig(sequential = true, 2, 5, 60.seconds,Some("irk.conf"))
     
     val configFileName = "irk.conf"
     

@@ -6,7 +6,7 @@ scalaVersion := "2.12.3"
 
 libraryDependencies ++= {
     val akkaHttpV = "10.0.10"
-    val playV = "2.6.3"
+    val playV = "2.6.7"
     val scalaTestV = "3.0.1"
     
     Seq(
