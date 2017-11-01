@@ -17,7 +17,8 @@ libraryDependencies ++= {
         "com.typesafe" % "config" % "1.3.1",
         "com.typesafe.akka" %% "akka-http" % akkaHttpV,
         "com.github.scopt" %% "scopt" % "3.7.0",
-        "nl.grons" %% "metrics-scala" % "3.5.9"
+        "nl.grons" %% "metrics-scala" % "3.5.9",
+        "org.slf4j" % "slf4j-simple" % "1.7.25"
     
     )
 }

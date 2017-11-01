@@ -8,8 +8,8 @@ import scala.concurrent.duration.Duration
 class ScoptArgsParser {
     
     def parseArgs(args: Array[String]) : Boolean = {
-        val parser = new scopt.OptionParser[IrkConfig]("scopt") {
-            head("scopt", "3.x")
+        val parser = new scopt.OptionParser[IrkConfig]("irk") {
+            head("irk", "3.x")
             
             opt[Int]('c', "connectionsNum").action((c, conf) =>
                 conf.copy(numOfConnections = c)
