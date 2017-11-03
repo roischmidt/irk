@@ -9,6 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object ClientManager {
     
+    
     var clients: List[HttpClient] = Nil
     /*
         secure threads for active clients (numOfThreads) chosen by user

@@ -1,53 +1,31 @@
 package irk.client
 
-import java.time
-import java.util.concurrent.{Executors, TimeUnit}
 
-import com.softwaremill.sttp._
-import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import com.typesafe.config.ConfigFactory
-import irk.http.{Method, Request, RequestContainer}
+import irk.http.{Request, RequestContainer}
 import irk.utils.Instrumented
+import irk.utils.clients.{IrkClient, SttpClient}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfConnections: ExecutionContext) extends Instrumented {
+class HttpClient (timeout: Duration, sequenced: Boolean = false)(implicit numOfConnections: ExecutionContext) extends Instrumented {
+    
+    val connectionTimeout: java.time.Duration = ConfigFactory.load().getDuration("irk.client.connectionTimeout")
+    // client to use
+    val client : IrkClient = new SttpClient(connectionTimeout)
     
     val FINISHED = true
     
     val shouldRun: Boolean = true
     
-    val connectionTimeout: time.Duration = ConfigFactory.load().getDuration("irk.sttp.connectionTimeout")
-    
-    implicit val sttpBackend: SttpBackend[Future, Nothing] = AsyncHttpClientFutureBackend(
-        connectionTimeout = FiniteDuration(connectionTimeout.toMillis, TimeUnit.MILLISECONDS)
-    )(ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor()))
-    
     val duration: Deadline = FiniteDuration(timeout._1,timeout._2).fromNow
     
     
-    def sendRequest(request: Request): Future[Response[String]] = {
-        val req = request.method match {
-            case Method.GET =>
-                sttp.get(uri"${insertSchemeIfNone(request.uri)}")
-                        .headers(Request.headersToMap(request.headers))
-            case Method.PUT =>
-                sttp.put(uri"${insertSchemeIfNone(request.uri)}")
-                        .headers(Request.headersToMap(request.headers))
-                        .body(request.postData.getOrElse(""))
-            case Method.POST =>
-                sttp.post(uri"${insertSchemeIfNone(request.uri)}")
-                        .headers(Request.headersToMap(request.headers))
-                        .body(request.postData.getOrElse(""))
-            case Method.DELETE =>
-                sttp.delete(uri"${insertSchemeIfNone(request.uri)}")
-                        .headers(Request.headersToMap(request.headers))
-                        .body(request.postData.getOrElse(""))
-        }
+    def sendRequest(request: Request): Future[Int] = {
         metrics.counter("requestCount").inc()
-        req.send()
+        client.sendRequest(request)
     }
     
     /**
@@ -60,29 +38,19 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
             sendSequenceParallel
     
     
-    /**
-      * we must hae scheme in order for sttp to work
-      *
-      * @param uri
-      */
-    private def insertSchemeIfNone(uri: String) =
-        if (uri.startsWith("http")) {
-            uri
-        } else {
-            s"http://$uri"
-        }
+    
     
     private def sendSequenceParallel: Future[Boolean] = Future {
         while (duration.hasTimeLeft()) {
             sendRequest(RequestContainer.getNextRequest).onComplete {
-                case Success(response) =>
-                    metrics.meter(s"${response.code}").mark()
+                case Success(responseCode) =>
+                    metrics.meter(s"$responseCode").mark()
                 case Failure(e) =>
                     metrics.meter(s"${e.getMessage}").mark()
                     metrics.counter("requestCount").dec()
             }
         }
-        sttpBackend.close()
+        client.close
         FINISHED
     }
     
@@ -92,7 +60,7 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
         while (duration.hasTimeLeft()) {
             if (sequenceEnd) {
                 sequenceEnd = false
-                RequestContainer.getAsList.foldLeft(Future(List.empty[Response[String]]))((prevFuture,
+                RequestContainer.getAsList.foldLeft(Future(List.empty[Int]))((prevFuture,
                 currentTuple) => {
                     for {
                         prev <- prevFuture
@@ -101,8 +69,8 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
                 })
             }.onComplete {
                 case Success(responseList) =>
-                    responseList.foreach { response =>
-                        metrics.meter(s"${response.code}").mark()
+                    responseList.foreach { responseCode =>
+                        metrics.meter(s"$responseCode").mark()
                     }
                     
                     sequenceEnd = true
@@ -111,7 +79,7 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
                     metrics.counter("requestCount").dec()
             }
         }
-        sttpBackend.close()
+        client.close
         FINISHED
     }
     
