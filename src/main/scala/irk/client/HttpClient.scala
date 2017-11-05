@@ -4,6 +4,7 @@ package irk.client
 import com.typesafe.config.ConfigFactory
 import irk.http.{Request, RequestContainer}
 import irk.utils.Instrumented
+import irk.utils.TimeUtils._
 import irk.utils.clients.{IrkClient, SttpClient}
 
 import scala.concurrent.duration._
@@ -16,11 +17,12 @@ class HttpClient (timeout: Duration, sequenced: Boolean = false)(implicit numOfC
     // client to use
     val client : IrkClient = new SttpClient(connectionTimeout)
     
+    
     val FINISHED = true
     
     val shouldRun: Boolean = true
     
-    val duration: Deadline = FiniteDuration(timeout._1,timeout._2).fromNow
+   // val duration: Deadline = FiniteDuration(timeout._1,timeout._2).fromNow
     
     
     def sendRequest(request: Request): Future[Int] = {
@@ -41,7 +43,7 @@ class HttpClient (timeout: Duration, sequenced: Boolean = false)(implicit numOfC
     
     
     private def sendSequenceParallel: Future[Boolean] = Future {
-        while (duration.hasTimeLeft()) {
+        runUntil(timeout) {
             sendRequest(RequestContainer.getNextRequest).onComplete {
                 case Success(responseCode) =>
                     metrics.meter(s"$responseCode").mark()
@@ -57,7 +59,7 @@ class HttpClient (timeout: Duration, sequenced: Boolean = false)(implicit numOfC
     
     private def sendSequenceOrdered: Future[Boolean] = Future {
         var sequenceEnd = true
-        while (duration.hasTimeLeft()) {
+        runUntil(timeout) {
             if (sequenceEnd) {
                 sequenceEnd = false
                 RequestContainer.getAsList.foldLeft(Future(List.empty[Int]))((prevFuture,
