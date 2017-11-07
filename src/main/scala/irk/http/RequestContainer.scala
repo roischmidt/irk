@@ -42,7 +42,7 @@ object RequestContainer {
   */
 class RequestBuilder {
     
-    val ENTITY_SEPARATOR = "---END---\n"
+    val ENTITY_SEPARATOR = "---END---"
     
     def loadFromFile(fileName: String): List[Request] = {
         val lsOut: mutable.MutableList[Request] = mutable.MutableList.empty
@@ -51,7 +51,7 @@ class RequestBuilder {
             if (httpFileStr.nonEmpty) {
                 httpFileStr.split(ENTITY_SEPARATOR).foreach { req =>
                     val parser = new HttpRawRequestParser()
-                    parser.parseRawRequest(req)
+                    parser.parseRawRequest(req.trim) // trim should remove line breaks from start/end of string
                     lsOut += Request.requestFromRawParser(parser)
                 }
             }

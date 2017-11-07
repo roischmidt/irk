@@ -9,10 +9,12 @@ import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import com.softwaremill.sttp.{ForceWrapped, SttpBackend, TestHttpServer}
 import irk.config.IrkConfig
 import irk.http.{Method, Request, RequestContainer}
+import irk.utils.Metrics
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{path => _, _}
 
+import scala.collection.Set
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -116,34 +118,38 @@ class HttpClientSpec extends FunSpec with Matchers
         closeBackends = backend.close _ :: closeBackends
         
         it("test simple get request") {
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
             val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
-            whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) { res =>
-                res shouldBe 200
+            whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) {
+                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
             }
         }
     
         it("test simple put request") {
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
             val client = new HttpClient(1.second)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
-            whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) { res =>
-                res shouldBe 200
+            whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) {
+                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
             }
         }
     
         it("test simple delete request") {
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
             val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
-            whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) { res =>
-                res shouldBe 200
+            whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) {
+                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
             }
         }
     
         it("test simple post request") {
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
             val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
             val uri = "http://localhost:9999/test/200"
-            whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) { res =>
-                res shouldBe 200
+            whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) {
+                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
             }
         }
         
@@ -151,17 +157,19 @@ class HttpClientSpec extends FunSpec with Matchers
             responseTimeMap = Map.empty
             val baseUri = "localhost:9999/test"
             val requests = List(
-                Request(Method.GET,s"$baseUri/200",List.empty),
-                Request(Method.GET,s"$baseUri/201",List.empty),
-                Request(Method.GET,s"$baseUri/202",List.empty),
-                Request(Method.GET,s"$baseUri/203",List.empty))
+                Request(Method.GET,s"$baseUri/${StatusCodes.OK.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.Created.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.Accepted.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.NonAuthoritativeInformation.intValue}",List.empty))
             RequestContainer.setRequestList(requests)
             val client = new HttpClient(1.seconds,sequenced = true)(ConnectionExecutionContextPool)
             client.run
             Thread.sleep(1000)
-            responseTimeMap(StatusCodes.OK.intValue) should be < responseTimeMap(StatusCodes.Created.intValue)
-            responseTimeMap(StatusCodes.Created.intValue) should be < responseTimeMap(StatusCodes.Accepted.intValue)
-            responseTimeMap(StatusCodes.Accepted.intValue) should be < responseTimeMap(StatusCodes.NonAuthoritativeInformation.intValue)
+            // sameElements also check order and not only elements (like ==)
+            responseTimeMap.keySet sameElements Set[Int](StatusCodes.OK.intValue,
+                StatusCodes.Created.intValue,
+                StatusCodes.Accepted.intValue,
+                StatusCodes.NonAuthoritativeInformation.intValue) shouldBe true
         }
     
         it("send sequence of requests in parallel") {
