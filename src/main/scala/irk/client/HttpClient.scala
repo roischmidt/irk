@@ -4,11 +4,12 @@ package irk.client
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.ConfigFactory
+import irk.config.IrkConfig
 import irk.http.{Request, RequestContainer}
 import irk.utils.FutureUtils.ForeachAsync
 import irk.utils.Instrumented
 import irk.utils.TimeUtils._
-import irk.utils.clients.{IrkClient, SttpClient}
+import irk.utils.clients.{AsyncApacheHttpClient, IrkClient, SttpClient}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -17,7 +18,7 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
 
   val connectionTimeout: java.time.Duration = ConfigFactory.load().getDuration("irk.client.connectionTimeout")
   // client to use
-  val client: IrkClient = new SttpClient(connectionTimeout)
+  val client: IrkClient = new AsyncApacheHttpClient(connectionTimeout,IrkConfig.conf.numOfConnections)//new SttpClient(connectionTimeout)
 
 
   val FINISHED = true
