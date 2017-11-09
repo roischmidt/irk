@@ -9,22 +9,20 @@ import irk.http.{Request, RequestContainer}
 import irk.utils.FutureUtils.ForeachAsync
 import irk.utils.Instrumented
 import irk.utils.TimeUtils._
-import irk.utils.clients.{AsyncApacheHttpClient, IrkClient, SttpClient}
+import irk.utils.clients.{AsyncApacheHttpClient, IrkClient}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
-class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfConnections: ExecutionContext) extends Instrumented {
+class HttpClient(timeout: Duration,numberOfConnections: Int, sequenced: Boolean = false) extends Instrumented {
 
   val connectionTimeout: java.time.Duration = ConfigFactory.load().getDuration("irk.client.connectionTimeout")
   // client to use
-  val client: IrkClient = new AsyncApacheHttpClient(connectionTimeout,IrkConfig.conf.numOfConnections)//new SttpClient(connectionTimeout)
+  val client: IrkClient = new AsyncApacheHttpClient(connectionTimeout,numberOfConnections)
 
 
   val FINISHED = true
-
-  val shouldRun: Boolean = true
-
 
   def sendRequest(request: Request): Future[Unit] = {
     metrics.counter("requestCount").inc()
@@ -49,11 +47,23 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
 
 
   private def sendSequenceParallel: Future[Boolean] = Future {
+    val startTime = System.currentTimeMillis()
+    val ttl = startTime + timeout.toMillis
     runUntil(timeout) {
-      sendRequest(RequestContainer.getNextRequest)
+      Await.ready(
+        Future sequence createFutureRequest
+        ,Duration(ttl - (System.currentTimeMillis()-startTime) ,TimeUnit.MILLISECONDS))
     }
-    client.close
     FINISHED
+  }
+
+  private def createFutureRequest : List[Future[Unit]] = {
+    var ls : List[Future[Unit]]  = Nil
+    // in case that we have connectionNum less than request list size we should have only one iteration
+    val numOfRequestsToProcessInOneIteration = Math.max(1,IrkConfig.conf.numOfConnections/RequestContainer.getAsList.size)
+    for(i <- 0 until numOfRequestsToProcessInOneIteration)
+      ls =  RequestContainer.getAsList.map(sendRequest) ::: ls
+    ls
   }
 
 
@@ -65,9 +75,10 @@ class HttpClient(timeout: Duration, sequenced: Boolean = false)(implicit numOfCo
          RequestContainer.getAsList.foreachAsync(sendRequest)
         ,Duration(ttl - (System.currentTimeMillis()-startTime) ,TimeUnit.MILLISECONDS))
     }
-    client.close
     FINISHED
   }
+
+  def shutDown = client.close
 
 
 }
