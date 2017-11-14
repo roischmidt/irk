@@ -14,13 +14,6 @@ object ClientManager {
         secure threads for active clients (numOfThreads) chosen by user
      */
     implicit val clientManagerExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(IrkConfig.conf.numOfThreads))
-    
-    /*
-        this will be the pool for connections - used across all clients
-     */
-//    val ConnectionExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(
-//        Executors.newFixedThreadPool(IrkConfig.conf.numOfConnections)
-//    )
 
     
     def runClients(): Future[Boolean] = {
@@ -35,7 +28,7 @@ object ClientManager {
             ls
         }
 
-        val futureRuns = clients.map(_.run)
+        val futureRuns = clients.map(c => Future {c.run})
         val f = Future sequence futureRuns
         f map {
             results =>
