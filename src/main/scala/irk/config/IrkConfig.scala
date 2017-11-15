@@ -69,7 +69,7 @@ object IrkConfig {
         s"""
           |run in sequence = ${config.sequential}
           |number of connections = ${config.numOfConnections}
-          |number of threads per client = ${config.numOfThreads}
+          |number of threads = ${config.numOfThreads}
           |running time = ${config.duration}
           |requests file location = ${config.requestsPath.getOrElse("NA")}
           |api to call = ${config.getRequest.getOrElse("NA")}

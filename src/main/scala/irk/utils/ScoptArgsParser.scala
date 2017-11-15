@@ -13,11 +13,11 @@ class ScoptArgsParser {
             
             opt[Int]('c', "connectionsNum").action((c, conf) =>
                 conf.copy(numOfConnections = c)
-            ).text("number of clients")
+            ).text("number of connections")
             
             opt[Int]('t', "threadsNum").action((t, conf) =>
                 conf.copy(numOfThreads = t)
-            ).text("number of threads per irk.client")
+            ).text("number of threads")
             
             opt[String]('d', "duration").action((d, conf) =>
                 conf.copy(duration = Duration( d.replace("m","minute")))

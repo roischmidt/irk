@@ -119,7 +119,7 @@ class HttpClientSpec extends FunSpec with Matchers
         
         it("test simple get request") {
             val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
-            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
+            val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) {
                 _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
@@ -128,7 +128,7 @@ class HttpClientSpec extends FunSpec with Matchers
     
         it("test simple put request") {
             val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
-            val client = new HttpClient(1.second)(ConnectionExecutionContextPool)
+            val client = new HttpClient(1.second,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) {
                 _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
@@ -137,7 +137,7 @@ class HttpClientSpec extends FunSpec with Matchers
     
         it("test simple delete request") {
             val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
-            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
+            val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) {
                 _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
@@ -146,7 +146,7 @@ class HttpClientSpec extends FunSpec with Matchers
     
         it("test simple post request") {
             val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
-            val client = new HttpClient(1.seconds)(ConnectionExecutionContextPool)
+            val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) {
                 _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
@@ -162,7 +162,7 @@ class HttpClientSpec extends FunSpec with Matchers
                 Request(Method.GET,s"$baseUri/${StatusCodes.Accepted.intValue}",List.empty),
                 Request(Method.GET,s"$baseUri/${StatusCodes.NonAuthoritativeInformation.intValue}",List.empty))
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(1.seconds,sequenced = true)(ConnectionExecutionContextPool)
+            val client = new HttpClient(1.seconds,1,sequenced = true)
             client.run
             Thread.sleep(1000)
             // sameElements also check order and not only elements (like ==)
@@ -176,12 +176,12 @@ class HttpClientSpec extends FunSpec with Matchers
             responseTimeMap = Map.empty
             val baseUri = "localhost:9999/test"
             val requests = List(
-                Request(Method.GET,s"$baseUri/200",List.empty),
-                Request(Method.GET,s"$baseUri/201",List.empty),
-                Request(Method.GET,s"$baseUri/202",List.empty),
-                Request(Method.GET,s"$baseUri/203",List.empty))
+                Request(Method.GET,s"$baseUri/${StatusCodes.OK.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.Created.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.Accepted.intValue}",List.empty),
+                Request(Method.GET,s"$baseUri/${StatusCodes.NonAuthoritativeInformation.intValue}",List.empty))
             RequestContainer.setRequestList(requests)
-            val client = new HttpClient(11.seconds, sequenced = false)(ConnectionExecutionContextPool)
+            val client = new HttpClient(11.seconds,1, sequenced = false)
             client.run
             Thread.sleep(1000)
             responseTimeMap.get(StatusCodes.OK.intValue).nonEmpty shouldBe true
