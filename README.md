@@ -53,7 +53,7 @@ all requests must be separated with ---END--- separator.
 Tip: raw request can be easily created with postman
 
 example:
-
+```
 GET /docs/index.html HTTP/1.1
 Host: www.test1.com
 Header: 1
@@ -63,20 +63,20 @@ PUT /docs/index.html HTTP/1.1
 Host: www.test2.com
 Header: 2
 
-{put}
+{body}
 ---END---
 POST /docs/index.html HTTP/1.1
 Host: www.test3.com
 Header: 3
 
-{post}
+{body}
 ---END---
 DELETE /docs/index.html HTTP/1.1
 Host: www.test4.com
 Header: 4
 
-{delete}
-
+{body}
+```
 ## building jar
 sbt assembly
 
