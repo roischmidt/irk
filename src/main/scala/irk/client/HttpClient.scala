@@ -19,7 +19,7 @@ class HttpClient(timeout: Duration,numberOfConnections: Int, sequenced: Boolean 
 
   val connectionTimeout: java.time.Duration = ConfigFactory.load().getDuration("irk.client.connectionTimeout")
   // client to use
-  val client: IrkClient = new ApacheHttpClient(connectionTimeout,numberOfConnections)//new AsyncApacheHttpClient(connectionTimeout,numberOfConnections)
+  val client: IrkClient = new AsyncApacheHttpClient(connectionTimeout,numberOfConnections)
 
 
   val FINISHED = true
