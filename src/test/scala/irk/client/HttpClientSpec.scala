@@ -7,7 +7,6 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
 import com.softwaremill.sttp.{ForceWrapped, SttpBackend, TestHttpServer}
-import irk.config.IrkConfig
 import irk.http.{Method, Request, RequestContainer}
 import irk.utils.Metrics
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -17,7 +16,6 @@ import org.scalatest.{path => _, _}
 import scala.collection.Set
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.higherKinds
 
 class HttpClientSpec extends FunSpec with Matchers

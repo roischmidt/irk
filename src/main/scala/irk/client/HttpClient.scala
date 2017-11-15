@@ -9,7 +9,7 @@ import irk.http.{Request, RequestContainer}
 import irk.utils.FutureUtils.ForeachAsync
 import irk.utils.Instrumented
 import irk.utils.TimeUtils._
-import irk.utils.clients.{ApacheHttpClient, AsyncApacheHttpClient, IrkClient}
+import irk.utils.clients.{AsyncApacheHttpClient, IrkClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
