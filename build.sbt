@@ -8,6 +8,8 @@ scalaVersion := "2.12.3"
 
 test in assembly := {}
 
+assemblyJarName in assembly := s"irk-${version.value}.jar"
+
 mainClass in assembly := Some("Runner")
 
 libraryDependencies ++= {
@@ -32,6 +34,7 @@ libraryDependencies ++= {
 // META-INF discarding
 assemblyMergeStrategy in assembly := {
     case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case "reference.conf" => MergeStrategy.concat
     case x => MergeStrategy.first
 }
 

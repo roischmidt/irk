@@ -31,7 +31,7 @@ Total requests: 4977
 
 ## Command Line Options
 
-sage: irk [options] [<HTTP GET>...]
+usage: java -jar irk-0.1.java [options] [<HTTP GET>...]
 
   -c, --connectionsNum <value>
                            number of clients
@@ -76,3 +76,15 @@ Host: www.test4.com
 Header: 4
 
 {delete}
+
+## building jar
+sbt assembly
+
+## upcoming roadmap
+- improve performance by testing more clients (current is AsynApacheHttp)
+
+
+#### link for execution jar
+https://drive.google.com/open?id=1LyVWDhRZpMTLGtdby0UbaWv-0s6XKeF-
+
+usage: java -jar irk-0.1.jar -t 4 -c 15 -d 2s http://localhost:12345/wrk
