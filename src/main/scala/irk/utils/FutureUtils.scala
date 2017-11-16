@@ -5,6 +5,7 @@ import scala.concurrent.{ExecutionContext, Future}
 object FutureUtils {
 
   /**
+    * run a collection of Futures in sequence (one after one)
     * taken from https://groups.google.com/forum/#!topic/scala-user/W9ykW8j3Ybg. thanks to √iktor Klang
     */
   implicit class ForeachAsync[T](iterable: Iterable[T]) {

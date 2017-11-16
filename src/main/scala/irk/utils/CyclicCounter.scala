@@ -3,6 +3,10 @@ package irk.utils
 import java.util.concurrent.atomic.AtomicInteger
 import scala.compat.java8.FunctionConverters._
 
+/**
+  * cyclic counter to move inside list in like endless loop
+  * @param numOfElements
+  */
 class CyclicCounter(numOfElements: Integer) {
     
     val maxVal: Integer = numOfElements

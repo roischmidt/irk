@@ -8,7 +8,9 @@ import irk.utils.{CyclicCounter, HttpRawRequestParser}
 import scala.collection.mutable
 
 
-
+/**
+  * stores all the requests as list and assign cyclic counter to it
+  */
 object RequestContainer {
     
     var cyclicCounter: CyclicCounter = _

@@ -46,12 +46,13 @@ class HttpClient(timeout: Duration,numberOfConnections: Int, sequenced: Boolean 
       sendSequenceParallel
 
   /**
+    * send a batch of requests (numOfConnections size) in parallel
     * BLOCKING!!!
     * @return
     */
   private def sendSequenceParallel: Boolean = {
     val startTime = System.currentTimeMillis()
-    val requestList = createFutureRequest
+    val requestList = createExpendedRequestList
     val ttl = startTime + timeout.toMillis
     runUntil(timeout) {
       Await.ready(
@@ -65,7 +66,7 @@ class HttpClient(timeout: Duration,numberOfConnections: Int, sequenced: Boolean 
     * creates a list of requests of size numOfConnections.
     * @return
     */
-  private def createFutureRequest : List[Request] = {
+  private def createExpendedRequestList : List[Request] = {
     var ls : List[Request]  = Nil
     // in case that we have connectionNum less than request list size we should have only one iteration
     val numOfRequestsToProcessInOneIteration = Math.max(1,IrkConfig.conf.numOfConnections/RequestContainer.getAsList.size)
@@ -75,6 +76,7 @@ class HttpClient(timeout: Duration,numberOfConnections: Int, sequenced: Boolean 
   }
 
   /**
+    * send a batch of requests (numOfConnections size) in sequence
     * BLOCKING!!!
     * @return
     */
