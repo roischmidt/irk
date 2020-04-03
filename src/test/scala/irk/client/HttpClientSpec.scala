@@ -5,18 +5,18 @@ import java.util.concurrent.Executors
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.softwaremill.sttp.asynchttpclient.future.AsyncHttpClientFutureBackend
-import com.softwaremill.sttp.{ForceWrapped, SttpBackend, TestHttpServer}
+import com.softwaremill.sttp.{ForceWrapped, TestHttpServer}
 import irk.http.{Method, Request, RequestContainer}
 import irk.utils.Metrics
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{path => _, _}
+import sttp.client.SttpBackend
+import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
 
 import scala.collection.Set
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.language.higherKinds
 
 class HttpClientSpec extends FunSpec with Matchers
         with BeforeAndAfterAll
@@ -95,7 +95,7 @@ class HttpClientSpec extends FunSpec with Matchers
     
     override def port = 9999
     
-    var closeBackends: List[() => Unit] = Nil
+    var  closeBackends: List[() => _] = Nil
     
     runTests("Async Http Client - Future")(AsyncHttpClientFutureBackend(),
         ForceWrappedValue.future)
@@ -106,7 +106,7 @@ class HttpClientSpec extends FunSpec with Matchers
     }
     
     def runTests[R[_]](name: String)(
-        implicit backend: SttpBackend[R, Nothing],
+        implicit backend: SttpBackend[R, Nothing,Nothing],
         forceResponse: ForceWrappedValue[R]): Unit = {
     
         val ConnectionExecutionContextPool: ExecutionContext = ExecutionContext.fromExecutor(
@@ -116,38 +116,38 @@ class HttpClientSpec extends FunSpec with Matchers
         closeBackends = backend.close _ :: closeBackends
         
         it("test simple get request") {
-            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.count).getOrElse(0l)
             val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.GET, uri, List.empty))) {
-                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
+                _ => Metrics.getMeterBySimpleName("200").get.count shouldBe (currentCount + 1)
             }
         }
     
         it("test simple put request") {
-            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.count).getOrElse(0l)
             val client = new HttpClient(1.second,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.PUT, uri, List.empty, Some("put test")))) {
-                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
+                _ => Metrics.getMeterBySimpleName("200").get.count shouldBe (currentCount + 1)
             }
         }
     
         it("test simple delete request") {
-            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.count).getOrElse(0l)
             val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.DELETE, uri, List.empty, Some("delete test")))) {
-                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
+                _ => Metrics.getMeterBySimpleName("200").get.count shouldBe (currentCount + 1)
             }
         }
     
         it("test simple post request") {
-            val currentCount = Metrics.getMeterBySimpleName("200").map(_.getCount).getOrElse(0l)
+            val currentCount = Metrics.getMeterBySimpleName("200").map(_.count).getOrElse(0l)
             val client = new HttpClient(1.seconds,1)
             val uri = "http://localhost:9999/test/200"
             whenReady(client.sendRequest(Request(Method.POST, uri, List.empty, Some("post test")))) {
-                _ => Metrics.getMeterBySimpleName("200").get.getCount shouldBe (currentCount + 1)
+                _ => Metrics.getMeterBySimpleName("200").get.count shouldBe (currentCount + 1)
             }
         }
         

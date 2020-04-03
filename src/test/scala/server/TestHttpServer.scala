@@ -10,10 +10,12 @@ import org.scalatest.concurrent.{PatienceConfiguration, ScalaFutures}
 import org.scalatest.exceptions.TestFailedException
 import org.scalatest.matchers.{MatchResult, Matcher}
 import org.scalatest.{BeforeAndAfterAll, Suite}
+import sttp.client.Identity
+import sttp.model.Uri
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.language.higherKinds
+
 
 trait TestHttpServer
         extends BeforeAndAfterAll
@@ -23,8 +25,8 @@ trait TestHttpServer
     protected implicit val actorSystem: ActorSystem = ActorSystem("sttp-test")
     import actorSystem.dispatcher
     
-    protected implicit val materializer = ActorMaterializer()
-    protected val endpoint = uri"irk.http://localhost:$port"
+    protected implicit val materializer = ActorMaterializer
+    protected val endpoint = Uri.parse("irk.http://localhost:$port")
     
     override protected def beforeAll(): Unit = {
         Http().bindAndHandle(serverRoutes, "localhost", port).futureValue
@@ -44,8 +46,8 @@ trait ForceWrappedValue[R[_]] {
 
 object ForceWrappedValue extends ScalaFutures with TestingPatience {
     
-    val id = new ForceWrappedValue[Id] {
-        override def force[T](wrapped: Id[T]): T =
+    val id = new ForceWrappedValue[Identity] {
+        override def force[T](wrapped: Identity[T]): T =
             wrapped
     }
     val future = new ForceWrappedValue[Future] {

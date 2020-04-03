@@ -24,8 +24,8 @@ class MetricsSpec extends FunSpec with Matchers with Instrumented {
         it("getMeterBySimpleName") {
             metrics.meter("non.simple.name").mark(10)
             metrics.meter("non.simple.name2").mark(20)
-            Metrics.getMeterBySimpleName("name").get.getCount shouldBe 10
-            Metrics.getMeterBySimpleName("name2").get.getCount shouldBe 20
+            Metrics.getMeterBySimpleName("name").get.count shouldBe 10
+            Metrics.getMeterBySimpleName("name2").get.count shouldBe 20
         }
     }
     

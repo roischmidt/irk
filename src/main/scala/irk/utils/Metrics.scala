@@ -1,15 +1,15 @@
 package irk.utils
 
 
-
-import com.codahale.metrics.{Counter, Meter}
+import com.codahale.metrics.SharedMetricRegistries
+import nl.grons.metrics4.scala.{Counter, Meter}
 
 import scala.collection.JavaConverters._
 
 object Metrics {
-    
-    val metricRegistry = new com.codahale.metrics.MetricRegistry()
-    
+
+    val metricRegistry = SharedMetricRegistries.getOrCreate("default")
+
     /**
       * converts to simpleName (e.g irk.client.meter.response200 to response200)
       * @return all meters as list of Strings (simpleName,meter.cunt)
@@ -24,15 +24,15 @@ object Metrics {
     def getMeterBySimpleName(simpleName: String) : Option[Meter] =
         metricRegistry.getMeters().asScala.find {
             e => e._1.contains(s".$simpleName")
-        }.map(x => x._2)
+        }.map(x => new Meter(x._2))
     
     def getCounterBySimpleName(simpleName: String) : Option[Counter] =
         metricRegistry.getCounters.asScala.find {
             e => e._1.contains(s".$simpleName")
-        }.map(x => x._2)
+        }.map(x => new Counter(x._2))
     
 }
 
-trait Instrumented extends nl.grons.metrics.scala.InstrumentedBuilder {
+trait Instrumented extends nl.grons.metrics4.scala.InstrumentedBuilder {
     val metricRegistry = Metrics.metricRegistry
 }

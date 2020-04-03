@@ -47,7 +47,7 @@ class RequestBuilder {
     val ENTITY_SEPARATOR = "---END---"
     
     def loadFromFile(fileName: String): List[Request] = {
-        val lsOut: mutable.MutableList[Request] = mutable.MutableList.empty
+        val lsOut: mutable.ListBuffer[Request] = mutable.ListBuffer.empty
         try {
             val httpFileStr = scala.io.Source.fromFile(fileName, "UTF-8").mkString
             if (httpFileStr.nonEmpty) {

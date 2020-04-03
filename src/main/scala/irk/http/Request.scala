@@ -3,6 +3,7 @@ package irk.http
 import irk.http.Method.Method
 import play.api.libs.json.Json
 import irk.utils.{EnumJsonUtils, HttpRawRequestParser}
+import scala.language.postfixOps
 
 object Method extends Enumeration {
     type Method = Value

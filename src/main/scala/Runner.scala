@@ -21,7 +21,7 @@ object Runner extends App with Instrumented {
                 System.exit(0)
         }
         val elapsedTimeInSeconds = IrkConfig.conf.duration.toSeconds//TimeUnit.NANOSECONDS.toSeconds(runTime.max)
-        val requestCount = Metrics.getCounterBySimpleName("requestCount").get.getCount
+        val requestCount = Metrics.getCounterBySimpleName("requestCount").get.count
         println(s"Total requests: $requestCount")
         println(s"${ requestCount / elapsedTimeInSeconds} REQ/SEC")
     }

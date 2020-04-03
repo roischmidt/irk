@@ -5,7 +5,7 @@ Inspired by wrk (https://github.com/wg/wrk), this benchmark tool has out of the 
 
 # Getting started with simple request
 
-irk -t 10 -c 50 -d 5s http://test.com:1234/test
+java -jar irk-0.1.jar -t 10 -c 50 -d 5s http://test.com:1234/test
 
 this will run 5 parallel clients(threads) that shares 100 http connections
 and run them for 1 minute
@@ -31,7 +31,7 @@ Total requests: 4977
 
 ## Command Line Options
 
-usage: java -jar irk-0.1.java [options] [<HTTP GET>...]
+usage: java -jar irk-0.1.jar [options] [<HTTP GET>...]
 
   -c, --connectionsNum <value>
                            number of clients
